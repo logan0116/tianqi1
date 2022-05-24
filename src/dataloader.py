@@ -30,7 +30,7 @@ class DataMaker:
         :return:
         """
 
-        source_list, target_list = [], []
+        source_list, attention_list, target_list = [], [], []
 
         label_dict = {'0': 679,
                       '1': 2523}
@@ -40,13 +40,16 @@ class DataMaker:
             token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）', truncation=True)[1:]
 
             source = token_ids_1 + [103] + token_ids_2
+            attention = [1] * len(source)
             target = [-100] * len(token_ids_1) + [label_dict[label]] + [-100] * len(token_ids_2)
 
             if len(source) <= self.max_len:
                 source = source + [0] * (self.max_len - len(source))
+                attention = attention + [0] * (self.max_len - len(attention))
                 target = target + [0] * (self.max_len - len(target))
 
             source_list.append(source)
+            attention_list.append(attention)
             target_list.append(target)
 
         return {'input_ids': torch.LongTensor(source_list),

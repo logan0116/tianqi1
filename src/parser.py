@@ -12,6 +12,7 @@ def parameter_parser():
     parser = argparse.ArgumentParser(description='for cnc ner')
     # model parameter
     parser.add_argument("--model_path", type=str, default="../roberta_chinese")
+    parser.add_argument("--pretrain_model_path", type=str, default="../roberta_chinese")
     parser.add_argument("--model_save_path", type=int, default=101)
     parser.add_argument("--eval_epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=16)
