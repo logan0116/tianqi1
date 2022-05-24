@@ -26,7 +26,7 @@ class DataMaker:
     def data_maker(self):
         """
         这里挑一个最简单的方法
-        s(s_class) [][][]r[][][] t(t_class)
+        s(s_class) [不、很]r t(t_class)
         :return:
         """
 
@@ -40,7 +40,8 @@ class DataMaker:
             token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）', truncation=True)[1:]
 
             source = token_ids_1 + [103] + token_ids_2
-            target = token_ids_1 + [label_dict[label]] + token_ids_2
+            target = [-100] * len(token_ids_1) + [label_dict[label]] + [-100] * len(token_ids_2)
+
             if len(source) <= self.max_len:
                 source = source + [0] * (self.max_len - len(source))
                 target = target + [0] * (self.max_len - len(target))
