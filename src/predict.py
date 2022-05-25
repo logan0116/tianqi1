@@ -10,6 +10,7 @@ from transformers import BertTokenizer, BertForMaskedLM
 import torch
 import json
 from parser import *
+from tqdm import tqdm
 
 
 class MLM:
@@ -30,13 +31,13 @@ class MLM:
         :return:
         """
 
-        file_write = '000_result.jsonl'
+        file_write = '../data/000_result.jsonl'
 
         with open(file_write, 'w', encoding='UTF-8') as json_file:
-            for triple_id, s, t, r in self.link[:100]:
+            for triple_id, s, t, r in tqdm(self.link):
                 s_class, r, t_class = r.split('_')
-                token_ids_1 = self.tokenizer.encode(s + '(' + s_class + '）', truncation=True)[:-1]
-                token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）', truncation=True)[1:]
+                token_ids_1 = self.tokenizer.encode(s + '(' + s_class + '）')[:-1]
+                token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）')[1:]
                 inputs = {'input_ids': torch.LongTensor([token_ids_1 + [103] + token_ids_2])}
                 with torch.no_grad():
                     logits = self.model(**inputs).logits

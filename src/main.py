@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/5/24 上午9:04
 # @Author  : liu yuhan
-# @FileName: dataloader.py
+# @FileName: main.py
 # @Software: PyCharm
 
 from transformers import BertForMaskedLM, BertTokenizer
