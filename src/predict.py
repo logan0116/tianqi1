@@ -17,6 +17,7 @@ class MLM:
     def __init__(self, args):
         self.link = []
         self.max_len = args.max_len
+        self.prompt_size = 2
         with open('../data/dev_triple.jsonl') as file:
             for l in file:
                 d = json.loads(l)
@@ -32,13 +33,15 @@ class MLM:
         """
 
         file_write = '../data/000_result.jsonl'
+        p_1 = [i for i in range(1, 1 + self.prompt_size)]
+        p_2 = [i for i in range(self.prompt_size + 1, self.prompt_size * 2 + 1)]
 
         with open(file_write, 'w', encoding='UTF-8') as json_file:
             for triple_id, s, t, r in tqdm(self.link):
                 s_class, r, t_class = r.split('_')
                 token_ids_1 = self.tokenizer.encode(s + '(' + s_class + '）')[:-1]
                 token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）')[1:]
-                inputs = {'input_ids': torch.LongTensor([token_ids_1 + [103] + token_ids_2])}
+                inputs = {'input_ids': torch.LongTensor([token_ids_1 + p_1 + [103] + p_2 + token_ids_2])}
                 with torch.no_grad():
                     logits = self.model(**inputs).logits
                 mask_token_index = (inputs['input_ids'] == self.tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
