@@ -57,9 +57,6 @@ class DataMaker:
                 attention = torch.cat((attention, zero_pad), 0)
                 target = torch.cat((target, zero_pad), 0)
 
-            print(source)
-            print(target)
-
             source_list.append(source)
             attention_list.append(attention)
             target_list.append(target)
