@@ -18,7 +18,7 @@ def parameter_parser():
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=0.00001)
     parser.add_argument("--cuda_order", type=str, default='0')
-    parser.add_argument("--max_len", type=int, default=32)
+    parser.add_argument("--max_len", type=int, default=36)
     # file
     parser.add_argument("--train_file_path", type=str, default="../train.tsv")
     parser.add_argument("--test_file_path", type=str, default="../test.tsv")

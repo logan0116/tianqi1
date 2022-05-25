@@ -17,11 +17,13 @@ class DataMaker:
     def __init__(self, args):
         self.link = []
         self.max_len = args.max_len
+        self.prompt_size = 2
         with open('../data/train_triple.jsonl') as file:
             for l in file:
                 d = json.loads(l)
                 self.link.append([d["subject"], d["object"], d["predicate"], d['salience']])
         self.tokenizer = BertTokenizer.from_pretrained(args.model_path)
+        self.data_collator = DataCollatorForLanguageModeling(tokenizer=self.tokenizer, mlm=True, mlm_probability=0.1)
 
     def data_maker(self):
         """
@@ -29,31 +31,41 @@ class DataMaker:
         s(s_class) [不、很]r t(t_class)
         :return:
         """
+        p_1 = [i for i in range(1, 1 + self.prompt_size)]
+        p_2 = [i for i in range(self.prompt_size + 1, self.prompt_size * 2 + 1)]
 
         source_list, attention_list, target_list = [], [], []
 
         label_dict = {'0': 679,
                       '1': 2523}
         for s, t, r, label in self.link:
-            s_class, r, t_class = r.split('_')
-            token_ids_1 = self.tokenizer.encode(s + '(' + s_class + '）', truncation=True)[:-1]
-            token_ids_2 = self.tokenizer.encode(r + t + '(' + t_class + '）', truncation=True)[1:]
+            s_c, r, t_c = r.split('_')
+            token_ids_1 = self.tokenizer.encode(s + '(' + s_c + '）', truncation=True, max_length=self.max_len)[:-1]
+            token_ids_2 = self.tokenizer.encode(r + t + '(' + t_c + '）', truncation=True, max_length=self.max_len)[1:]
 
-            source = token_ids_1 + [103] + token_ids_2
-            attention = [1] * len(source)
-            target = [-100] * len(token_ids_1) + [label_dict[label]] + [-100] * len(token_ids_2)
+            token_ids_1_masked = self.data_collator([token_ids_1])['input_ids'][0].tolist()
+            token_ids_2_masked = self.data_collator([token_ids_2])['input_ids'][0].tolist()
 
-            if len(source) <= self.max_len:
-                source = source + [0] * (self.max_len - len(source))
-                attention = attention + [0] * (self.max_len - len(attention))
-                target = target + [0] * (self.max_len - len(target))
+            source = torch.LongTensor(token_ids_1_masked + p_1 + [103] + p_2 + token_ids_2_masked)
+            attention = torch.ones_like(source)
+            target = torch.LongTensor(token_ids_1 + p_1 + [label_dict[label]] + p_2 + token_ids_2)
+            target = torch.where(source == self.tokenizer.mask_token_id, target, -100)
+
+            if source.shape[0] < self.max_len:
+                zero_pad = torch.zeros(self.max_len - source.shape[0], dtype=torch.int)
+                source = torch.cat((source, zero_pad), 0)
+                attention = torch.cat((attention, zero_pad), 0)
+                target = torch.cat((target, zero_pad), 0)
+
+            print(source)
+            print(target)
 
             source_list.append(source)
             attention_list.append(attention)
             target_list.append(target)
 
-        return {'input_ids': torch.LongTensor(source_list),
-                'labels': torch.LongTensor(target_list)}
+        return {'input_ids': torch.stack(source_list),
+                'labels': torch.stack(target_list)}
 
 
 if __name__ == '__main__':

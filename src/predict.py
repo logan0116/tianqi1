@@ -45,9 +45,9 @@ class MLM:
                 predicted_token_id = logits[0, mask_token_index].argmax(axis=-1)
                 result = self.tokenizer.decode(predicted_token_id)
                 if result == '不':
-                    json_file.write(json.dumps({'triple_id': triple_id, 'result': result, 'salience': 0}) + '\n')
+                    json_file.write(json.dumps({'triple_id': triple_id, 'salience': 0}) + '\n')
                 else:
-                    json_file.write(json.dumps({'triple_id': triple_id, 'result': result, 'salience': 1}) + '\n')
+                    json_file.write(json.dumps({'triple_id': triple_id, 'salience': 1}) + '\n')
 
 
 if __name__ == '__main__':
