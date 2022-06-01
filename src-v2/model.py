@@ -131,7 +131,6 @@ class Evaluator:
                 batch_size = mp.shape[0]
                 inputs_embeds = model(source, attention, r).cpu()
                 predict = inputs_embeds[torch.arange(batch_size), mp].argmax(axis=1)
-                predict = torch.where(predict == 679, 0, torch.ones_like(predict))
 
                 for t, p in zip(target[torch.arange(batch_size), mp].tolist(), predict.tolist()):
                     if t == 679:
