@@ -13,7 +13,7 @@ def parameter_parser():
     # model parameter
     parser.add_argument("--model_path", type=str, default="../roberta_chinese")
     parser.add_argument("--pretrain_model_path", type=str, default="../roberta_chinese")
-    parser.add_argument("--model_save_path", type=int, default=101)
+    parser.add_argument("--model_save_path", type=str, default='xiaqiu')
 
     parser.add_argument("--link_size", type=int, default=4)
     parser.add_argument("--dim", type=int, default=768)

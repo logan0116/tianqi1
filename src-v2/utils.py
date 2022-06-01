@@ -24,6 +24,9 @@ class DataMaker:
             for l in file:
                 d = json.loads(l)
                 self.link.append([d["subject"], d["object"], d["predicate"], d['salience']])
+
+        # self.link = self.link[:20]
+
         self.tokenizer = BertTokenizer.from_pretrained(args.model_path)
         self.data_collator = DataCollatorForLanguageModeling(tokenizer=self.tokenizer, mlm=True, mlm_probability=0.1)
 
@@ -50,7 +53,7 @@ class DataMaker:
         p_1 = [i for i in range(1, 1 + self.prompt_size)]
         p_2 = [i for i in range(self.prompt_size + 1, self.prompt_size * 2 + 1)]
 
-        source_list, attention_list, target_list, r_list = [], [], [], []
+        source_list, attention_list, target_list, r_list, mp_list = [], [], [], [], []
 
         label_dict = {'0': 679,
                       '1': 2523}
@@ -82,8 +85,10 @@ class DataMaker:
             attention_list.append(attention)
             target_list.append(target)
             r_list.append(relation_dict[r0])
+            mp_list.append(len(token_ids_1_masked) + len(p_1))
 
-        return torch.stack(source_list), torch.stack(attention_list), torch.stack(target_list), torch.LongTensor(r_list)
+        return torch.stack(source_list), torch.stack(attention_list), torch.stack(target_list), \
+               torch.LongTensor(r_list), torch.LongTensor(mp_list)
 
 
 class MyDataSet(Data.Dataset):
@@ -91,14 +96,16 @@ class MyDataSet(Data.Dataset):
     没啥说的，正常的数据载入
     '''
 
-    def __init__(self, source_list, attention_list, target_list, r_list):
+    def __init__(self, source_list, attention_list, target_list, r_list, mp_list):
         self.source_list = source_list
         self.attention_list = attention_list
         self.target_list = target_list
         self.r_list = r_list
+        self.mp_list = mp_list
 
     def __len__(self):
         return len(self.source_list)
 
     def __getitem__(self, idx):
-        return self.source_list[idx], self.attention_list[idx], self.target_list[idx], self.r_list[idx],
+        return self.source_list[idx], self.attention_list[idx], self.target_list[idx], \
+               self.r_list[idx], self.mp_list[idx]
