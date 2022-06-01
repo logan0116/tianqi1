@@ -49,7 +49,7 @@ def train():
     print('training...')
     for epoch in range(args.epochs):
         model, optimizer, loss = trainer.train(epoch, model, optimizer)
-        if epoch % args.eval_epochs == 0 and epoch > 0:
+        if (epoch + 1) % args.eval_epochs == 0 and epoch > 0:
             evaluator.evaluate(epoch, model, loss)
 
 
