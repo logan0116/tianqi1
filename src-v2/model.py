@@ -128,19 +128,22 @@ class Evaluator:
             for source, attention, target, r, mp in self.loader:
                 source, attention = source.to(self.device), attention.to(self.device)
                 r = r.to(self.device)
+                batch_size = mp.shape[0]
                 inputs_embeds = model(source, attention, r).cpu()
-                predict = inputs_embeds[torch.arange(mp.shape[0]), mp].argmax(axis=1)
+                predict = inputs_embeds[torch.arange(batch_size), mp].argmax(axis=1)
                 predict = torch.where(predict == 679, 0, torch.ones_like(predict))
 
-                for t, p in zip(target.tolist(), predict.tolist()):
-                    if t == 1 and p == 1:
-                        tp += 1
-                    elif t == 1 and p == 0:
-                        fn += 1
-                    elif t == 0 and p == 1:
-                        fp += 1
-                    elif t == 0 and p == 0:
-                        tp += 1
+                for t, p in zip(target[torch.arange(batch_size), mp].tolist(), predict.tolist()):
+                    if t == 679:
+                        if t == p:
+                            tn += 1
+                        else:
+                            fp += 1
+                    else:
+                        if t == p:
+                            tp += 1
+                        else:
+                            fn += 1
 
                 bar.set_description('eval: Epoch ' + str(epoch))
                 bar.update(1)
